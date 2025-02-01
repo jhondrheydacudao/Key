@@ -1,0 +1,137 @@
+// ==UserScript==
+// @name         KeyRBLX Bypass Script with Progress
+// @namespace    https://example.com
+// @version      1.1
+// @description  Bypass script for KeyRBLX with progress indication
+// @author       You
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    const addParamToUrl = (url, key, value) => (u => (u.searchParams.append(key, value), u.toString()))(new URL(url.includes('http') ? url : `https://${url}`));
+    let hwid = new URLSearchParams(window.location.search).get('hwid');
+
+    // Create a progress container and a progress bar
+    const createProgressUI = () => {
+        const progressContainer = document.createElement('div');
+        progressContainer.style.position = 'fixed';
+        progressContainer.style.top = '50%';
+        progressContainer.style.left = '50%';
+        progressContainer.style.transform = 'translate(-50%, -50%)';
+        progressContainer.style.width = '80%';
+        progressContainer.style.backgroundColor = '#333';
+        progressContainer.style.padding = '20px';
+        progressContainer.style.borderRadius = '10px';
+        progressContainer.style.textAlign = 'center';
+        progressContainer.style.color = '#fff';
+        progressContainer.style.fontFamily = 'Arial, sans-serif';
+
+        const progressBar = document.createElement('div');
+        progressBar.style.height = '20px';
+        progressBar.style.backgroundColor = '#00bcd4';
+        progressBar.style.borderRadius = '10px';
+
+        const progressText = document.createElement('p');
+        progressText.style.fontSize = '18px';
+        progressText.textContent = 'Processing...';
+
+        progressContainer.appendChild(progressText);
+        progressContainer.appendChild(progressBar);
+
+        document.body.appendChild(progressContainer);
+
+        return { progressContainer, progressBar, progressText };
+    };
+
+    class KeyRBLX {
+        static getKey() {
+            if (document.body.innerHTML.includes('You successfully got')) {
+                console.log('Key obtained!');
+                return;
+            }
+
+            // Initialize progress UI
+            const { progressContainer, progressBar, progressText } = createProgressUI();
+            let progress = 0;
+
+            (function() {
+                document.body.innerHTML = "";
+                if (document.querySelector('script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]')) return;
+
+                const script = document.createElement('script');
+                script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+                script.async = true;
+                script.defer = true;
+
+                const container = document.createElement('div');
+                container.id = 'cloudflare-turnstile';
+
+                script.onload = async function() {
+                    turnstile.render('#cloudflare-turnstile', {
+                        sitekey: '0x4AAAAAAAOYhbMkXdQ4Qa2k',
+                        theme: 'light',
+                        callback: async function(token) {
+                            progressText.textContent = 'Submitting token...';
+                            progress = 20;
+                            progressBar.style.width = `${progress}%`;
+
+                            const data = await (await fetch(`https://iwoozie.baby/api/challenger/keyrblx?u=t&turnstile=${token}&name=${window.location.pathname.split('/')[2]}&hwid=${hwid}`)).json();
+                            progress = 50;
+                            progressBar.style.width = `${progress}%`;
+                            progressText.textContent = 'Bypassing link...';
+
+                            const newdata = await (await fetch(`https://iwoozie.baby/api/free/bypass?u=t&url=${encodeURIComponent(data.result)}`)).json();
+                            progress = 80;
+                            progressBar.style.width = `${progress}%`;
+                            progressText.textContent = 'Redirecting...';
+
+                            document.body.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #1f1f1f; color: #fff; font-size: 24px; font-family: 'Arial', sans-serif; animation: fadeIn 1s;"><div style="text-align: center; padding: 20px; border: 2px solid #00bcd4; border-radius: 10px; background-color: #333; box-shadow: 0 4px 10px rgba(0, 188, 212, 0.5); animation: zoomIn 1s;"><h1 style="font-size: 36px; animation: slideInFromTop 1s;">Captcha completed</h1><p style="font-size: 18px; animation: fadeIn 2s;">Waiting 15s to skip to another checkpoint...</p><div id="timer" style="font-weight: bold; font-size: 30px; animation: pulse 1.5s infinite;">15</div></div></div>`;
+
+                            let countdown = 15;
+                            const timerElement = document.getElementById('timer');
+                            const interval = setInterval(() => {
+                                countdown--;
+                                timerElement.innerText = countdown;
+                                if (countdown <= 0) {
+                                    clearInterval(interval);
+                                    location.href = `https://linkvertise.com?iwantreferrer=${encodeURIComponent(addParamToUrl(newdata.result, 'hwid', hwid))}`;
+                                }
+                            }, 1000);
+                        }
+                    });
+                };
+
+                document.head.appendChild(script);
+                document.body.appendChild(container);
+            })();
+
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes fadeIn {
+                    0% { opacity: 0; }
+                    100% { opacity: 1; }
+                }
+                @keyframes zoomIn {
+                    0% { transform: scale(0.8); opacity: 0; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes slideInFromTop {
+                    0% { transform: translateY(-50px); opacity: 0; }
+                    100% { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.1); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    KeyRBLX.getKey();
+
+})();
