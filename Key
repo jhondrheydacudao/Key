@@ -14,7 +14,6 @@
     const addParamToUrl = (url, key, value) => (u => (u.searchParams.append(key, value), u.toString()))(new URL(url.includes('http') ? url : `https://${url}`));
     let hwid = new URLSearchParams(window.location.search).get('hwid');
 
-    // Create a progress container and a progress bar
     const createProgressUI = () => {
         const progressContainer = document.createElement('div');
         progressContainer.style.position = 'fixed';
